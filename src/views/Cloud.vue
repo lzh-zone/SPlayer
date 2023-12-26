@@ -76,7 +76,7 @@
           </n-empty>
         </Transition>
       </div>
-      <n-empty v-else class="empty" description="你还没播放任何歌曲" />
+      <n-empty v-else class="empty" description="你还有任何歌曲，快去上传吧" />
     </Transition>
   </div>
 </template>
@@ -104,10 +104,9 @@ const searchValue = ref(null);
 const searchData = ref([]);
 
 // 获取用户云盘缓存数据
-const getUserCloudDataList = async () => {
-  await indexedDB.getfilesDB("userCloudList").then((res) => {
-    userCloudData.value = res;
-  });
+const getUserCloudDataCatch = async () => {
+  const result = await indexedDB.getfilesDB("userCloudList");
+  userCloudData.value = result;
 };
 
 // 获取用户云盘列表
@@ -117,7 +116,6 @@ const getUserCloudData = async (isOnce = false) => {
     let offset = 0;
     let totalCount = null;
     let resultArr = [];
-    userCloudData.value = [];
     // 获取数据
     while (totalCount === null || offset < totalCount) {
       const res = await getUserCloud(100, offset);
@@ -131,8 +129,9 @@ const getUserCloudData = async (isOnce = false) => {
         (res.maxSize / Math.pow(1024, 3)).toFixed(0),
       ];
       if (res.count === 0) {
+        console.log("云盘为空");
         userCloudData.value = "empty";
-        break;
+        return false;
       }
       if (isOnce) break;
     }
@@ -189,13 +188,13 @@ const goBuy = () => {
   window.open("https://music.163.com/#/store/product/detail?id=34001");
 };
 
-onBeforeMount(() => {
-  getUserCloudDataList();
-  getUserCloudData();
+onMounted(async () => {
+  await getUserCloudDataCatch();
+  await getUserCloudData();
 });
 
 onMounted(() => {
-  window.$refreshCloudList = getUserCloudDataList;
+  window.$refreshCloudCatch = getUserCloudDataCatch;
 });
 </script>
 

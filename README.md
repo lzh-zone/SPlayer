@@ -142,9 +142,9 @@ docker-compose up -d
 
 ```bash
 # 拉取
-docker pull imsyy/splayer:2.0.0-beta.5
+docker pull imsyy/splayer:latest
 # 运行
-docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:2.0.0-beta.5
+docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:latest
 ```
 
 以上步骤成功后，将会在本地 [localhost:7899](http://localhost:7899/) 启动，如需更换端口，请自行修改命令行中的端口号
@@ -256,6 +256,7 @@ docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:2.0.0-beta.5
 
 <details>
 <summary>查看目录结构详情</summary>
+
 
 > ChatGPT 写的，如有错误，请见谅
 
@@ -394,15 +395,16 @@ docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:2.0.0-beta.5
 │       ├── List                          # 列表相关组件
 │       │   ├── album.vue                 # 专辑组件
 │       │   └── playlist.vue              # 歌单组件
+│       │   └── dj.vue                    # 电台组件
 │       ├── Local                         # 本地音乐相关组件
 │       │   ├── albums.vue                # 本地音乐专辑组件
 │       │   ├── artists.vue               # 本地音乐艺术家组件
 │       │   ├── index.vue                 # 本地音乐主组件
 │       │   └── songs.vue                 # 本地音乐歌曲组件
 │       ├── Player.vue                    # 视频播放器组件
-│       ├── Record                        # 电台相关组件
-│       │   ├── hot.vue                   # 电台热门组件
+│       ├── Dj                            # 电台相关组件
 │       │   └── index.vue                 # 电台主组件
+│       │   └── type.vue                  # 电台分类组件
 │       ├── Search                        # 搜索相关组件
 │       │   ├── albums.vue                # 搜索专辑组件
 │       │   ├── artists.vue               # 搜索艺术家组件
@@ -410,6 +412,7 @@ docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:2.0.0-beta.5
 │       │   ├── playlists.vue             # 搜索歌单组件
 │       │   ├── songs.vue                 # 搜索歌曲组件
 │       │   └── videos.vue                # 搜索视频组件
+│       │   └── djs.vue                   # 搜索电台组件
 │       ├── Setting                       # 设置相关组件
 │       │   └── index.vue                 # 设置主组件
 │       ├── Song.vue
