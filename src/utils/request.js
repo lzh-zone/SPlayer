@@ -19,7 +19,7 @@ axios.interceptors.request.use(
     if (!request.params) request.params = {};
     // 附加 cookie
     if (!request.noCookie && (isLogin() || getCookie("MUSIC_U") !== null)) {
-      setCookies(import.meta.env.MAIN_VITE_NETEASE_COOKIE|| null);
+      setCookies(import.meta.env.MAIN_VITE_NETEASE_COOKIE);
       request.params.cookie = ` request.params.cookie = `MUSIC_U=${getCookie("MUSIC_U")};`;
     }
     // 去除 cookie
