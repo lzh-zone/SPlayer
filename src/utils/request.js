@@ -24,7 +24,7 @@ axios.interceptors.request.use(
     }
     // 去除 cookie
     if (request.noCookie) {
-      request.params.noCookie = true;
+      request.params.noCookie = false;
     }
     // 附加 realIP
     if (!checkPlatform.electron()) request.params.realIP = "116.25.146.177";
