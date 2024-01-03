@@ -1,7 +1,7 @@
 import { Howl, Howler } from "howler";
 import { musicData, siteStatus, siteSettings } from "@/stores";
 import { getSongUrl, getSongLyric, songScrobble } from "@/api/song";
-import { checkPlatform, getLocalCoverData } from "@/utils/helper";
+import { checkPlatform, getLocalCoverData, getBlobUrlFromUrl } from "@/utils/helper";
 import { decode as base642Buffer } from "@/utils/base64";
 import { getSongPlayTime } from "@/utils/timeTools";
 import { getCoverGradient } from "@/utils/cover-color";
@@ -207,22 +207,23 @@ const getFromUnblockMusic = async (data, status, playNow) => {
  * @param {number} seek - 初始播放进度（ 默认为 0 ）
  */
 export const createPlayer = async (src, autoPlay = true) => {
-  console.log("播放地址：", src);
   try {
     // pinia
     const music = musicData();
     const status = siteStatus();
     const settings = siteSettings();
-    const { playSongSource } = music;
+    const { playSongSource, playList } = music;
     // 当前播放歌曲数据
     const playSongData = music.getPlaySongData;
+    // 获取播放链接
+    const blobUrl = await getBlobUrlFromUrl(src);
+    console.log("播放地址：", blobUrl);
     // 初始化播放器
     player = new Howl({
-      src: [src],
-      format: ["mp3", "flac"],
+      src: [blobUrl],
+      format: ["mp3", "flac", "dolby", "webm"],
       html5: true,
-      pool: 10,
-      preload: true,
+      preload: "metadata",
       volume: status.playVolume,
       rate: status.playRate,
     });
@@ -261,8 +262,8 @@ export const createPlayer = async (src, autoPlay = true) => {
           status.playMode === "dj"
             ? "电台节目"
             : Array.isArray(playSongData.artists)
-            ? playSongData.artists.map((ar) => ar.name).join(" / ")
-            : playSongData.artists || "未知歌手";
+              ? playSongData.artists.map((ar) => ar.name).join(" / ")
+              : playSongData.artists || "未知歌手";
         electron.ipcRenderer.send("songNameChange", songName + " - " + songArtist);
       }
       // 听歌打卡
@@ -311,25 +312,34 @@ export const createPlayer = async (src, autoPlay = true) => {
       }
     });
     // 加载失败
-    player?.on("loaderror", (_, errCode) => {
-      console.log("错误");
+    player?.on("loaderror", (id, errCode) => {
+      console.log("播放出现错误：", id, errCode);
       // 更改状态
       status.playLoading = false;
-      status.playState = false;
       // https://github.com/goldfire/howler.js?tab=readme-ov-file#onloaderror-function
-      // 1-用户代理应用户请求中止了获取媒体资源的过程
-      // 2-某个描述的网络错误导致用户代理在确定资源可用后停止获取媒体资源
-      // 3-在确定资源可用后，对媒体资源进行解码时发生某种描述错误
-      // 4-由src属性或分配的媒体提供程序对象指示的媒体资源不合适
-      if (errCode === 3) {
-        $message.error("播放出错，媒体进行解码时发生错误");
-      } else if (errCode === 4) {
-        $message.error("播放出错，不支持的音频格式");
-      } else {
-        $message.error("播放遇到错误");
+      switch (errCode) {
+        case 1:
+          $message.error("播放出错，用户代理中止了获取媒体");
+          break;
+        case 2:
+          $message.error("播放出错，未知的网络错误");
+          break;
+        case 3:
+          $message.error("播放出错，媒体进行解码时发生错误");
+          break;
+        case 4:
+          $message.error("播放出错，不支持的音频格式或媒体资源不合适");
+          break;
+        default:
+          $message.error("播放遇到未知错误");
+          break;
       }
       // 下一曲
-      changePlayIndex();
+      if (playList.length > 1) {
+        changePlayIndex();
+      } else {
+        status.playState = false;
+      }
     });
     // 返回音频对象
     return (window.$player = player);
@@ -641,8 +651,8 @@ const initMediaSession = async (data, cover, islocal, isDj) => {
       artist: isDj
         ? "电台节目"
         : islocal
-        ? data.artists
-        : data.artists?.map((a) => a.name)?.join(" & "),
+          ? data.artists
+          : data.artists?.map((a) => a.name)?.join(" & "),
       album: isDj ? "电台节目" : islocal ? data.album : data.album.name,
       artwork: islocal
         ? [
