@@ -152,7 +152,6 @@ const getNormalSongUrl = async (id, status, playNow) => {
     const url = res.data[0].url.replace(/^http:/, "https:");
     // 更改状态
     if (playNow && url) status.playState = true;
-    status.playLoading = false;
     return url;
   } catch (error) {
     status.playLoading = false;
@@ -213,12 +212,14 @@ export const createPlayer = async (src, autoPlay = true) => {
     const status = siteStatus();
     const settings = siteSettings();
     const { playSongSource, playList } = music;
+    const { showSpectrums, memorySeek, useMusicCache } = settings;
     // 当前播放歌曲数据
     const playSongData = music.getPlaySongData;
     // 获取播放链接
-    const blobUrl = await getBlobUrlFromUrl(src);
+    const blobUrl = useMusicCache ? await getBlobUrlFromUrl(src) : src;
     console.log("播放地址：", blobUrl);
     // 初始化播放器
+    if (player) soundStop();
     player = new Howl({
       src: [blobUrl],
       format: ["mp3", "flac", "dolby", "webm"],
@@ -234,7 +235,7 @@ export const createPlayer = async (src, autoPlay = true) => {
     music.setPlayHistory(playSongData);
     // 生成音乐频谱
     // 由于浏览器安全策略，无法在此处启动
-    if (settings.showSpectrums && checkPlatform.electron()) processSpectrum(player);
+    if (showSpectrums && checkPlatform.electron()) processSpectrum(player);
     // 加载完成
     player?.once("load", () => {
       console.info("🎵 加载完成", player, status.playState);
@@ -244,10 +245,7 @@ export const createPlayer = async (src, autoPlay = true) => {
         fadePlayOrPause("play");
       }
       // 恢复进度（防止播放到结尾时触发 bug）
-      if (
-        settings.memorySeek &&
-        status.playTimeData?.duration - status.playTimeData?.currentTime > 2
-      ) {
+      if (memorySeek && status.playTimeData?.duration - status.playTimeData?.currentTime > 2) {
         setSeek(status.playTimeData?.currentTime ?? 0);
       } else {
         setSeek();
@@ -504,13 +502,6 @@ export const setRate = (rate) => {
  */
 export const setVolume = (volume) => {
   player?.volume(Number(volume));
-};
-
-/**
- * 检查是否存在于播放器且正在播放
- */
-export const checkPlayer = () => {
-  return player && player?.playing();
 };
 
 /**
