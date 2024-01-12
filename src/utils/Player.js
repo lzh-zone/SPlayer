@@ -6,7 +6,7 @@ import { decode as base642Buffer } from "@/utils/base64";
 import { getSongPlayTime } from "@/utils/timeTools";
 import { getCoverGradient } from "@/utils/cover-color";
 import { isLogin } from "@/utils/auth";
-import parseLyric from "@/utils/parseLyric";
+import { parseLyric, parseLocalLrc } from "@/utils/parseLyric";
 
 // 全局播放器
 let player;
@@ -46,6 +46,7 @@ export const initPlayer = async (playNow = false) => {
     playSongData.id = playMode === "dj" ? playSongData.mainTrackId : playSongData.id;
     // 是否为本地歌曲
     const isLocalSong = playSongData?.path ? true : false;
+    console.log("当前为本地歌曲");
     // 获取封面
     if (isLocalSong) {
       music.playSongData.localCover = await getLocalCoverData(playSongData?.path);
@@ -597,17 +598,20 @@ const getSongLyricData = async (islocal, data) => {
     const music = musicData();
     const setDefaults = () => {
       music.playSongLyric = {
+        hasLrcTran: false,
+        hasLrcRoma: false,
+        hasYrc: false,
+        hasYrcTran: false,
+        hasYrcRoma: false,
         lrc: [],
         yrc: [],
-        hasTran: false,
-        hasRoma: false,
-        hasYrc: false,
       };
     };
     if (islocal) {
       const lyricData = await electron.ipcRenderer.invoke("getMusicLyric", data?.path);
       if (lyricData) {
-        music.playSongLyric = parseLyric({ lrc: { lyric: lyricData } });
+        const result = parseLocalLrc(lyricData);
+        music.playSongLyric = result ? (music.playSongLyric = result) : setDefaults();
       } else {
         console.log("该歌曲暂无歌词");
         setDefaults();
@@ -616,7 +620,8 @@ const getSongLyricData = async (islocal, data) => {
       const lyricResponse = await getSongLyric(data?.id);
       const lyricData = lyricResponse?.lrc;
       if (lyricData) {
-        music.playSongLyric = parseLyric(lyricResponse);
+        const result = parseLyric(lyricResponse);
+        result ? (music.playSongLyric = result) : setDefaults();
       } else {
         console.log("该歌曲暂无歌词");
         setDefaults();
@@ -777,6 +782,50 @@ const getPlaySongName = () => {
         ? playSongData.artists.map((ar) => ar.name).join(" / ")
         : playSongData.artists || "未知歌手";
   return songName + " - " + songArtist;
+};
+
+/**
+ * 播放所有歌曲
+ * @param {Array} playlist - 包含歌曲信息的数组
+ * @param {string} mode - 播放模式
+ */
+export const playAllSongs = async (playlist, mode = "normal") => {
+  try {
+    // pinia
+    const music = musicData();
+    const status = siteStatus();
+    if (!playlist) return false;
+    // 关闭心动模式
+    status.playHeartbeatMode = false;
+    // 更改模式和歌单
+    status.playMode = mode;
+    music.playList = playlist.slice();
+    // 是否处于歌单内
+    const songId = music.getPlaySongData?.id;
+    const existingIndex = playlist.findIndex((song) => song.id === songId);
+    // 若不处于
+    if (existingIndex === -1 || !songId) {
+      console.log("不在歌单内");
+      music.playSongData = playlist[0];
+      status.playIndex = 0;
+      // 初始化播放器
+      await initPlayer(true);
+    } else {
+      console.log("处于歌单内");
+      music.playSongData = playlist[existingIndex];
+      status.playIndex = existingIndex;
+      // 播放
+      fadePlayOrPause();
+    }
+    // 获取封面
+    if (music.getPlaySongData?.path) {
+      music.playSongData.localCover = await getLocalCoverData(music.getPlaySongData?.path);
+    }
+    $message.info("已开始播放", { showIcon: false });
+  } catch (error) {
+    console.error("播放全部歌曲出错：", error);
+    $message.error("播放全部歌曲出现错误");
+  }
 };
 
 /*
