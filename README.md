@@ -1,10 +1,16 @@
-<div align="center">
+<!-- <div align="center">
 <img alt="logo" height="80" src="./public/images/icons/favicon.png" />
 <h2>SPlayer</h2>
 <p>一个简约的音乐播放器</p>
 <img alt="main" src="./screenshots/main.png" />
 </div>
-<br />
+<br /> -->
+
+# SPlayer
+
+> 一个简约的音乐播放器
+
+![main](/screenshots/SPlayer.jpg)
 
 ## 说明
 
