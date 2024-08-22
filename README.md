@@ -1,18 +1,6 @@
-<!-- <div align="center">
-<img alt="logo" height="80" src="./public/images/icons/favicon.png" />
-<h2>SPlayer</h2>
-<p>一个简约的音乐播放器</p>
-<img alt="main" src="./screenshots/main.png" />
-</div>
-<br /> -->
-
 # SPlayer
 
 > 一个简约的音乐播放器
-
-> [!IMPORTANT]
->
-> 由于 [NeteaseCloudMusicApi](https://github.com/Binaryify/NeteaseCloudMusicApi) 项目已停止维护，由于接口状态的不可确定性，将无法保障功能的正常使用，本项目将会停止新功能的开发，进入无限期停更状态
 
 ![main](/screenshots/SPlayer.jpg)
 
@@ -46,6 +34,7 @@
 - 📱 支持手机号登录
 - 📅 自动进行每日签到及云贝签到
 - 🎨 封面主题色自适应
+- 🌚 Light / Dark 模式自动切换
 - 📁 本地歌曲管理及分类（建议先使用 [音乐标签](https://www.cnblogs.com/vinlxc/p/11347744.html) 进行匹配后再使用）
 - 🎵 **支持播放部分无版权歌曲（可能会与原曲不匹配，客户端独占功能）**
 - ⬇️ 下载歌曲（最高支持 Hi-Res）
@@ -68,7 +57,7 @@
 - 📱 移动端基础适配
 - ~~🌐 `i18n` 支持~~
 
-## 🖼️ Screenshots
+## 🖼️ screenshots
 
 > 开发中，仅供参考
 
@@ -173,7 +162,7 @@ docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:latest
 
 5. 将 `Build and Output Settings` 中的 `Output Directory` 改为 `out/renderer`
 
-   ![build](/screenshots/build.png)
+   ![build](/screenshots/build.jpg)
 
 6. 点击 `Deploy`，即可成功部署
 
@@ -238,6 +227,8 @@ docker run -d --name SPlayer -p 7899:7899 imsyy/splayer:latest
 - [YesPlayMusic](https://github.com/qier222/YesPlayMusic)
 - [UnblockNeteaseMusic](https://github.com/UnblockNeteaseMusic/server)
 - [Vue-mmPlayer](https://github.com/maomao1996/Vue-mmPlayer)
+- [refined-now-playing-netease](https://github.com/solstice23/refined-now-playing-netease)
+- [material-color-utilities](https://github.com/material-foundation/material-color-utilities)
 
 ## 📢 免责声明
 
